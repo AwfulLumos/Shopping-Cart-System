@@ -7,9 +7,18 @@ from ShoppingCart import ShoppingCart
 app = FastAPI()
 cart = ShoppingCart()
 
+# Define Item first, so it can be used in PurchaseOrder
 class Item(BaseModel):
     item: str
     price: float
+
+class PurchaseOrder(BaseModel):
+    items: List[Item]
+
+@app.get("/view_items")
+def view_items():
+    items = cart.get_products()
+    return {"products": items}
 
 @app.post("/add_item")
 def add_item(item: Item):
@@ -25,3 +34,9 @@ def view_cart():
 def total_price():
     total = cart.total_price()
     return {"total_price": total}
+
+@app.post("/purchase_order")
+def purchase_order(order: PurchaseOrder):
+    for item in order.items:
+        cart.add_item(item.item, item.price)
+    return {"message": "Your purchase order has been placed."}
